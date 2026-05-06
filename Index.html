@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MenteMestre</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0d0f12;--surface:#151820;--surface2:#1c2030;--border:#252a3a;--accent:#4fffb0;--accent2:#3dd4ff;--warn:#ff6b6b;--text:#e8eaf2;--muted:#6b7394;--radius:12px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+  header{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;}
+  .logo span{color:var(--accent);}
+  .hbtn{background:var(--surface2);border:1px solid var(--border);padding:6px 11px;border-radius:20px;font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;cursor:pointer;}
+  .hbtn:hover{border-color:var(--accent);color:var(--accent);}
+  .rules-count{display:inline-block;background:var(--accent);color:#000;border-radius:10px;padding:0 6px;font-weight:700;margin-left:4px;font-size:0.65rem;}
+  .steps-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;overflow-x:auto;}
+  .step-item{display:flex;align-items:center;gap:6px;font-size:0.68rem;font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap;cursor:pointer;}
+  .step-item.active{color:var(--accent);}
+  .step-item.done{color:var(--accent2);}
+  .step-num{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:700;flex-shrink:0;}
+  .step-item.active .step-num{border-color:var(--accent);background:rgba(79,255,176,0.1);color:var(--accent);}
+  .step-item.done .step-num{border-color:var(--accent2);background:rgba(61,212,255,0.1);color:var(--accent2);}
+  .step-sep{flex:1;min-width:10px;height:1px;background:var(--border);margin:0 6px;}
+  .page{display:none;flex:1;flex-direction:column;overflow:hidden;}
+  .page.active{display:flex;}
+  .scroll-area{flex:1;overflow-y:auto;padding:18px;}
+  .field-group{margin-bottom:16px;}
+  label{display:block;font-size:0.68rem;font-weight:500;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-family:'DM Mono',monospace;}
+  input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;padding:10px 13px;outline:none;transition:border-color 0.2s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:68px;}
+  select option{background:var(--surface2);}
+  .tags-row{display:flex;flex-wrap:wrap;gap:7px;}
+  .tag{padding:6px 12px;border-radius:20px;border:1px solid var(--border);font-size:0.76rem;cursor:pointer;color:var(--muted);user-select:none;transition:all 0.15s;}
+  .tag.active{border-color:var(--accent);color:var(--accent);background:rgba(79,255,176,0.07);}
+  .option-cards{display:flex;flex-direction:column;gap:9px;}
+  .option-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:13px 15px;cursor:pointer;transition:all 0.2s;}
+  .option-card.active{border-color:var(--accent);background:rgba(79,255,176,0.05);}
+  .option-card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;margin-bottom:3px;}
+  .option-card-sub{font-size:0.76rem;color:var(--muted);line-height:1.5;}
+  .weeks-row{display:flex;gap:9px;}
+  .week-opt{flex:1;padding:13px 8px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface2);text-align:center;cursor:pointer;transition:all 0.2s;font-family:'Syne',sans-serif;font-weight:700;}
+  .week-opt.active{border-color:var(--accent);background:rgba(79,255,176,0.07);color:var(--accent);}
+  .week-opt span{display:block;font-size:0.62rem;font-weight:400;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+  .btn-primary{margin:0 18px 10px;padding:14px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;cursor:pointer;width:calc(100% - 36px);transition:all 0.2s;flex-shrink:0;}
+  .btn-primary:hover{background:#6fffbf;}
+  .btn-primary:disabled{background:var(--border);color:var(--muted);cursor:default;}
+  .btn-back{margin:0 18px 14px;padding:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;width:calc(100% - 36px);transition:all 0.2s;flex-shrink:0;}
+  .btn-back:hover{border-color:var(--accent2);color:var(--accent2);}
+  .loading-box{display:flex;align-items:center;gap:12px;padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-size:0.86rem;}
+  .error-box{padding:16px 18px;background:rgba(255,107,107,0.07);border:1px solid var(--warn);border-radius:var(--radius);color:var(--warn);font-size:0.84rem;line-height:1.6;}
+  .dot-pulse span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin:0 2px;animation:pulse 1.2s infinite;}
+  .dot-pulse span:nth-child(2){animation-delay:0.2s;}
+  .dot-pulse span:nth-child(3){animation-delay:0.4s;}
+  @keyframes pulse{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+  .result-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:fadeIn 0.4s ease;margin-bottom:14px;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .card-header{padding:14px 17px;border-bottom:1px solid var(--border);background:var(--surface2);}
+  .card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.93rem;}
+  .card-sub{font-size:0.72rem;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;}
+  .card-body{padding:16px;font-size:0.86rem;line-height:1.85;white-space:pre-wrap;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+  .chip{font-family:'DM Mono',monospace;font-size:0.66rem;padding:3px 8px;border-radius:20px;background:rgba(79,255,176,0.08);border:1px solid rgba(79,255,176,0.2);color:var(--accent);}
+  .action-bar{border-top:1px solid var(--border);padding:14px 17px;background:var(--surface2);}
+  .action-label{font-size:0.66rem;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+  .action-bar textarea{font-size:0.84rem;min-height:55px;margin-bottom:9px;}
+  .btn-row{display:flex;gap:9px;}
+  .btn-outline{flex:1;padding:11px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;transition:all 0.2s;}
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-solid{flex:1;padding:11px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;transition:all 0.2s;}
+  .btn-solid:hover{background:#6fffbf;}
+  .btn-feedback{width:100%;padding:11px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.2s;}
+  .btn-feedback:hover{background:var(--accent);color:#000;}
+  .feedback-success{background:rgba(79,255,176,0.08);border:1px solid rgba(79,255,176,0.25);border-radius:var(--radius);padding:9px 13px;font-size:0.78rem;color:var(--accent);margin-top:9px;display:none;}
+  .btn-novo{margin-top:10px;padding:11px;width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s;}
+  .btn-novo:hover{border-color:var(--accent2);color:var(--accent2);}
+  .hist-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;}
+  .hist-item:hover{border-color:var(--muted);}
+  .hist-name{font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;}
+  .hist-meta{font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px;}
+  .hist-detail{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;}
+  .hist-detail-header{padding:13px 16px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between;}
+  .hist-detail-body{padding:16px;font-size:0.85rem;line-height:1.85;white-space:pre-wrap;}
+  .side-panel{position:fixed;top:0;right:-100%;width:min(400px,100%);height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:300;transition:right 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;}
+  .side-panel.open{right:0;}
+  .panel-header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.93rem;}
+  .btn-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
+  .panel-body{flex:1;overflow-y:auto;padding:15px;}
+  .rule-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 34px 11px 13px;margin-bottom:9px;font-size:0.82rem;line-height:1.6;position:relative;}
+  .rule-item::before{content:'✓';color:var(--accent);font-weight:700;margin-right:7px;}
+  .rule-delete{position:absolute;top:9px;right:11px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.78rem;}
+  .rules-empty{text-align:center;color:var(--muted);font-size:0.82rem;padding:36px 14px;line-height:1.7;}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:299;display:none;}
+  .overlay.show{display:block;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+  .divider{height:1px;background:var(--border);margin:14px 0;}
+  .section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.83rem;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Mente<span>Mestre</span></div>
+  <div style="display:flex;gap:8px;">
+    <button class="hbtn" onclick="openPanel('hist')">📁 Histórico</button>
+    <button class="hbtn" onclick="openPanel('rules')">Regras <span class="rules-count" id="rulesCount">0</span></button>
+  </div>
+</header>
+
+<div class="steps-bar">
+  <div class="step-item active" id="si-1" onclick="goStep(1)"><div class="step-num">1</div>Perfil</div>
+  <div class="step-sep"></div>
+  <div class="step-item" id="si-2" onclick="goStep(2)"><div class="step-num">2</div>Contexto</div>
+  <div class="step-sep"></div>
+  <div class="step-item" id="si-3" onclick="goStep(3)"><div class="step-num">3</div>Planejamento</div>
+  <div class="step-sep"></div>
+  <div class="step-item" id="si-4" onclick="goStep(4)"><div class="step-num">4</div>Treino</div>
+</div>
+
+<!-- STEP 1 -->
+<div class="page active" id="page-1">
+  <div class="scroll-area">
+    <div class="field-group"><label>Nome</label><input type="text" id="nome" placeholder="Ex: João Silva"></div>
+    <div class="field-group"><label>Idade</label><input type="number" id="idade" placeholder="Ex: 35"></div>
+    <div class="field-group"><label>Sexo</label><select id="sexo"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option></select></div>
+    <div class="field-group">
+      <label>Objetivo</label>
+      <div class="tags-row" id="objetivoTags">
+        <span class="tag" onclick="toggleTag(this,'objetivo')">Hipertrofia</span>
+        <span class="tag" onclick="toggleTag(this,'objetivo')">Emagrecimento</span>
+        <span class="tag" onclick="toggleTag(this,'objetivo')">Força</span>
+        <span class="tag" onclick="toggleTag(this,'objetivo')">Resistência</span>
+        <span class="tag" onclick="toggleTag(this,'objetivo')">Reabilitação</span>
+        <span class="tag" onclick="toggleTag(this,'objetivo')">Condicionamento</span>
+      </div>
+    </div>
+    <div class="field-group"><label>Nível</label><select id="nivel"><option value="">Selecione</option><option>Iniciante (0–6 meses)</option><option>Intermediário (6m–2 anos)</option><option>Avançado (+2 anos)</option><option>Atleta</option></select></div>
+    <div class="field-group">
+      <label>Dias / semana</label>
+      <div class="tags-row" id="diasTags">
+        <span class="tag" onclick="toggleTag(this,'dias')">2x</span><span class="tag" onclick="toggleTag(this,'dias')">3x</span><span class="tag" onclick="toggleTag(this,'dias')">4x</span><span class="tag" onclick="toggleTag(this,'dias')">5x</span><span class="tag" onclick="toggleTag(this,'dias')">6x</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Duração da sessão</label>
+      <div class="tags-row" id="duracaoTags">
+        <span class="tag" onclick="toggleTag(this,'duracao')">30min</span><span class="tag" onclick="toggleTag(this,'duracao')">45min</span><span class="tag" onclick="toggleTag(this,'duracao')">60min</span><span class="tag" onclick="toggleTag(this,'duracao')">75min</span><span class="tag" onclick="toggleTag(this,'duracao')">90min</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Equipamentos</label>
+      <div class="tags-row" id="equipTags">
+        <span class="tag" onclick="toggleTag(this,'equip')">Academia</span><span class="tag" onclick="toggleTag(this,'equip')">Halteres</span><span class="tag" onclick="toggleTag(this,'equip')">Kettlebell</span><span class="tag" onclick="toggleTag(this,'equip')">Peso Corporal</span><span class="tag" onclick="toggleTag(this,'equip')">Elásticos</span><span class="tag" onclick="toggleTag(this,'equip')">Barra</span>
+      </div>
+    </div>
+    <div class="field-group"><label>Restrições / Observações</label><textarea id="restricoes" placeholder="Ex: Hérnia L4-L5, dor no ombro direito..."></textarea></div>
+  </div>
+  <button class="btn-primary" onclick="irParaContexto()">Continuar →</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="page" id="page-2">
+  <div class="scroll-area">
+    <div class="field-group">
+      <div class="section-title">Este é o primeiro treino ou uma troca?</div>
+      <div class="option-cards">
+        <div class="option-card" id="opt-primeiro" onclick="selectMomento('primeiro')">
+          <div class="option-card-title">🌱 Primeiro treino</div>
+          <div class="option-card-sub">Aluno iniciando agora. Sem histórico anterior.</div>
+        </div>
+        <div class="option-card" id="opt-troca" onclick="selectMomento('troca')">
+          <div class="option-card-title">🔄 Troca de treino</div>
+          <div class="option-card-sub">Aluno já treina. Vamos evoluir a periodização.</div>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="field-group">
+      <div class="section-title">Duração deste bloco</div>
+      <div class="weeks-row">
+        <div class="week-opt" id="wk-4" onclick="selectWeeks(4)">4<span>semanas</span></div>
+        <div class="week-opt" id="wk-6" onclick="selectWeeks(6)">6<span>semanas</span></div>
+        <div class="week-opt" id="wk-8" onclick="selectWeeks(8)">8<span>semanas</span></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div id="historico-field" style="display:none">
+      <div class="field-group">
+        <div class="section-title">Histórico do último treino</div>
+        <textarea id="historico" placeholder="Ex: Fez 6 semanas de pirâmide 14/12/10. Evoluiu bem nas cargas. Dificuldade nos exercícios de costas..."></textarea>
+      </div>
+    </div>
+  </div>
+  <button class="btn-primary" id="btnGerar" onclick="gerarTudo()">⚡ Gerar Planejamento + Treino</button>
+  <button class="btn-back" onclick="goStep(1)">← Voltar para Perfil</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="page" id="page-3">
+  <div class="scroll-area" id="planArea">
+    <div class="loading-box"><div class="dot-pulse"><span></span><span></span><span></span></div>Gerando planejamento e treino...</div>
+  </div>
+  <button class="btn-back" onclick="goStep(2)">← Voltar para Contexto</button>
+</div>
+
+<!-- STEP 4 -->
+<div class="page" id="page-4">
+  <div class="scroll-area" id="treinoArea"></div>
+  <button class="btn-back" onclick="goStep(3)">← Voltar para Planejamento</button>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="side-panel" id="panel-rules">
+  <div class="panel-header"><div class="panel-title">📚 Regras Aprendidas</div><button class="btn-close" onclick="closePanel()">✕</button></div>
+  <div class="panel-body" id="rulesList"></div>
+</div>
+<div class="side-panel" id="panel-hist">
+  <div class="panel-header"><div class="panel-title">📁 Histórico de Treinos</div><button class="btn-close" onclick="closePanel()">✕</button></div>
+  <div class="panel-body" id="histList"></div>
+</div>
+
+<script>
+const RULES_KEY='mm_rules_v1', HIST_KEY='mm_hist_v1';
+let tagState={objetivo:null,dias:null,duracao:null,equip:[]};
+let rules=load(RULES_KEY), history=load(HIST_KEY);
+let ctx={momento:null,semanas:null};
+let profile={}, currentStep=1, planText='';
+
+function load(k){try{return JSON.parse(localStorage.getItem(k))||[];}catch{return[];}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+function goStep(n){
+  if(n>currentStep)return;
+  currentStep=n;
+  for(let i=1;i<=4;i++){document.getElementById('si-'+i).className='step-item'+(i<n?' done':i===n?' active':'');}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+}
+function advanceStep(n){
+  currentStep=n;
+  for(let i=1;i<=4;i++){document.getElementById('si-'+i).className='step-item'+(i<n?' done':i===n?' active':'');}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+}
+function irParaContexto(){buildProfile();advanceStep(2);}
+
+function toggleTag(el,group){
+  if(group==='equip'){el.classList.toggle('active');tagState.equip=[...document.querySelectorAll('#equipTags .tag.active')].map(t=>t.textContent);return;}
+  el.parentElement.querySelectorAll('.tag').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');tagState[group]=el.textContent.trim();
+}
+function selectMomento(v){
+  ctx.momento=v;
+  document.getElementById('opt-primeiro').classList.toggle('active',v==='primeiro');
+  document.getElementById('opt-troca').classList.toggle('active',v==='troca');
+  document.getElementById('historico-field').style.display=v==='troca'?'block':'none';
+}
+function selectWeeks(n){ctx.semanas=n;[4,6,8].forEach(w=>document.getElementById('wk-'+w).classList.toggle('active',w===n));}
+
+function buildProfile(){
+  profile={
+    nome:document.getElementById('nome').value.trim()||'Aluno',
+    idade:document.getElementById('idade').value||'—',
+    sexo:document.getElementById('sexo').value||'—',
+    objetivo:tagState.objetivo||'—',
+    nivel:document.getElementById('nivel').value||'—',
+    dias:tagState.dias||'—',
+    duracao:tagState.duracao||'—',
+    equip:tagState.equip.length?tagState.equip.join(', '):'—',
+    restricoes:document.getElementById('restricoes').value.trim()||'Nenhuma'
+  };
+}
+
+function buildSystem(){
+  const r=rules.length?'\nREGRAS:\n'+rules.map((x,i)=>`${i+1}. ${x.text}`).join('\n'):'';
+  return `Personal Trainer assistant (16+ anos exp, Pós Fisiologia, Mestrado CAFS).
+
+FASES:
+1) Familiarização: 2-4×10
+2) Coordenação: séries×15
+3) Pirâmide crescente por bloco (iniciantes ficam mais tempo em cada): 14/12/10 → 12/10/8 → 10/8/6
+4) Zonas: 3×10-12 → 4×8-10 → 4×6-8
+5) Métodos avançados: bi set, tri set, super set, rest-pause, drop set, cluster
+Pirâmide decrescente (ex: 12/10/8/6) usada no final do treino.
+Transição entre fases por evolução do aluno, não por tempo fixo.
+
+PROGRESSÃO SEMANAL:
+- Mais carga: reduza as reps (3×10-12 → 3×8-10)
+- Mais volume: aumente as séries (3×10-12 → 4×10-12)
+- Ensino de carga: pirâmide (12/10/8 ou 14/12/10)
+- NUNCA escreva "(+ carga)" fora do esquema de séries×reps
+
+MÉTODOS (NOMENCLATURA OBRIGATÓRIA):
+- Bi set: 2 exercícios MESMO grupo. Uniarticular ANTES do multiarticular (ex: Crucifixo + Supino). Intervalo só após o 2º.
+- Tri set: 3 exercícios MESMO grupo. Mesma lógica. Intervalo só após o 3º.
+- Super set: 2+ exercícios grupos DIFERENTES. Sem intervalo entre eles. Intervalo só após o último.
+- Drop set: redução de carga sem descanso.
+- Rest-pause: pausa 10-15s dentro da série.
+- Cluster set: mini-séries com pausa curta.
+- Pirâmide decrescente: reduz carga, aumenta reps — só no final do treino.
+
+FORMATO: nomenclatura técnica, compacto. Cada exercício: Nome — séries×reps — descanso — cadência.${r}`;
+}
+
+async function gerarTudo(){
+  if(!ctx.momento){alert('Selecione primeiro treino ou troca.');return;}
+  if(!ctx.semanas){alert('Selecione a duração do bloco.');return;}
+  buildProfile();
+  const hist=ctx.momento==='troca'?document.getElementById('historico').value.trim():null;
+  advanceStep(3);
+  document.getElementById('planArea').innerHTML=`<div class="loading-box"><div class="dot-pulse"><span></span><span></span><span></span></div>Gerando planejamento e treino...</div>`;
+  document.getElementById('btnGerar').disabled=true;
+
+  const msg=`PERFIL: ${profile.nome}|${profile.idade}a|${profile.sexo}|${profile.objetivo}|${profile.nivel}|${profile.dias}/sem|${profile.duracao}|Equip:${profile.equip}|Rest:${profile.restricoes}
+BLOCO: ${ctx.semanas} semanas|${ctx.momento==='primeiro'?'Primeiro treino':'Troca'}${hist?'|Histórico: '+hist:''}
+
+Gere em UMA resposta usando EXATAMENTE este formato:
+
+---
+PLANEJAMENTO
+Justificativa breve da fase/método escolhido.
+
+DIVISÃO E VOLUME:
+A — [grupos musculares com total de séries cada. Ex: Quadríceps 9, Glúteos 4, Isquiotibiais 4]
+B — [idem]
+C — [idem]
+(continue conforme a divisão)
+
+VOLUME TOTAL SEMANAL: [soma de séries por grupo muscular em todos os treinos. Ex: Quadríceps 12, Glúteos 7...]
+
+SEMANA 1 — [método] — [zona de reps]
+SEMANA 2 — [método] — [zona de reps]
+(continue até semana ${ctx.semanas})
+---
+TREINO A — [grupo muscular]
+1. Exercício — séries×reps — descanso — cadência
+2. Exercício — séries×reps — descanso — cadência
+(todos os exercícios do treino A)
+
+TREINO B — [grupo muscular]
+(todos os exercícios do treino B)
+
+(continue para C, D... conforme a divisão)
+---
+FIM
+
+Seja compacto. Liste todos os exercícios de todos os treinos. Sempre termine com FIM.`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,system:buildSystem(),messages:[{role:"user",content:msg}]})
+    });
+    if(!res.ok){const e=await res.text();throw new Error(`HTTP ${res.status}: ${e}`);}
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'Erro ao gerar.';
+    planText=text;
+    saveToHistory(text);
+    renderResult(text);
+  }catch(e){
+    document.getElementById('planArea').innerHTML=`<div class="error-box">❌ ${e.message}</div>`;
+  }finally{
+    document.getElementById('btnGerar').disabled=false;
+  }
+}
+
+function renderResult(text){
+  let fmt=text
+    .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--accent)">$1</strong>')
+    .replace(/^#{1,3} (.+)$/gm,'<strong style="font-size:0.92rem;display:block;margin:14px 0 4px;color:var(--accent2)">$1</strong>');
+  const chips=[profile.objetivo,profile.nivel,profile.dias,ctx.semanas+'sem'].filter(Boolean);
+  document.getElementById('planArea').innerHTML=`
+    <div class="result-card">
+      <div class="card-header">
+        <div class="card-title">📋 Planejamento + Treino · ${profile.nome}</div>
+        <div class="card-sub">${new Date().toLocaleDateString('pt-BR')} · ${ctx.semanas} semanas</div>
+        <div class="chip-row">${chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+      </div>
+      <div class="card-body">${fmt}</div>
+      <div class="action-bar">
+        <div class="action-label">✏️ Ajustes</div>
+        <textarea id="ajusteInput" placeholder="Ex: Prefiro ABCD. Mais volume de costas. Retire leg press..."></textarea>
+        <div class="btn-row">
+          <button class="btn-outline" onclick="regerarComAjuste()">↺ Ajustar</button>
+          <button class="btn-solid" onclick="confirmar()">✓ Está ótimo!</button>
+        </div>
+      </div>
+      <div class="action-bar">
+        <div class="action-label">💬 Feedback para aprender</div>
+        <textarea id="feedbackPlanInput" placeholder="Ex: Nunca use full body para iniciantes..."></textarea>
+        <button class="btn-feedback" onclick="enviarFeedback('feedbackPlanInput','feedbackPlanOk')">✅ Registrar regra</button>
+        <div class="feedback-success" id="feedbackPlanOk">Regra registrada!</div>
+      </div>
+    </div>`;
+}
+
+async function regerarComAjuste(){
+  const ajuste=document.getElementById('ajusteInput').value.trim();
+  if(!ajuste)return;
+  document.getElementById('planArea').innerHTML=`<div class="loading-box"><div class="dot-pulse"><span></span><span></span><span></span></div>Ajustando...</div>`;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,system:buildSystem(),messages:[{role:"user",content:`Planejamento atual:\n${planText}\n\nAjuste: ${ajuste}\n\nRegere completo com os ajustes. Termine com FIM.`}]})
+    });
+    if(!res.ok){const e=await res.text();throw new Error(`HTTP ${res.status}: ${e}`);}
+    const data=await res.json();
+    planText=data.content?.[0]?.text||'';
+    saveToHistory(planText);
+    renderResult(planText);
+  }catch(e){
+    document.getElementById('planArea').innerHTML=`<div class="error-box">❌ ${e.message}</div>`;
+  }
+}
+
+function confirmar(){
+  advanceStep(4);
+  let fmt=planText
+    .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--accent)">$1</strong>')
+    .replace(/^#{1,3} (.+)$/gm,'<strong style="font-size:0.92rem;display:block;margin:14px 0 4px;color:var(--accent2)">$1</strong>');
+  const chips=[profile.objetivo,profile.nivel,profile.dias,ctx.semanas+'sem'].filter(Boolean);
+  document.getElementById('treinoArea').innerHTML=`
+    <div class="result-card">
+      <div class="card-header">
+        <div class="card-title">⚡ Treino Aprovado · ${profile.nome}</div>
+        <div class="card-sub">${new Date().toLocaleDateString('pt-BR')}</div>
+        <div class="chip-row">${chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+      </div>
+      <div class="card-body">${fmt}</div>
+      <div class="action-bar">
+        <div class="action-label">💬 Feedback para aprender</div>
+        <textarea id="feedbackTreinoInput" placeholder="Ex: Prefiro supino inclinado antes do plano..."></textarea>
+        <button class="btn-feedback" onclick="enviarFeedback('feedbackTreinoInput','feedbackTreinoOk')">✅ Registrar regra</button>
+        <div class="feedback-success" id="feedbackTreinoOk">Regra registrada!</div>
+      </div>
+      <div class="action-bar">
+        <button class="btn-feedback" onclick="copiarTreino()" id="btnCopiar">📋 Copiar treino completo</button>
+        <div class="feedback-success" id="copyOk">✅ Copiado!</div>
+      </div>
+    </div>
+    <button class="btn-novo" onclick="novoAluno()">+ Novo aluno / novo treino</button>`;
+}
+
+function copiarTreino(){
+  navigator.clipboard.writeText(planText).then(()=>{
+    const ok=document.getElementById('copyOk');
+    ok.style.display='block';
+    setTimeout(()=>ok.style.display='none',3000);
+  });
+}
+
+function saveToHistory(text){
+  history.unshift({id:Date.now(),nome:profile.nome,data:new Date().toLocaleDateString('pt-BR'),semanas:ctx.semanas,objetivo:profile.objetivo,text});
+  if(history.length>20)history=history.slice(0,20);
+  save(HIST_KEY,history);
+}
+
+function renderHistList(){
+  const el=document.getElementById('histList');
+  if(!history.length){el.innerHTML='<div class="rules-empty">Nenhum treino gerado ainda.</div>';return;}
+  el.innerHTML=history.map(h=>`
+    <div class="hist-item" onclick="showHistDetail(${h.id})">
+      <div class="hist-name">${h.nome}</div>
+      <div class="hist-meta">${h.data} · ${h.semanas} sem · ${h.objetivo}</div>
+    </div>`).join('');
+}
+
+function showHistDetail(id){
+  const h=history.find(x=>x.id===id);
+  if(!h)return;
+  let fmt=h.text
+    .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--accent)">$1</strong>')
+    .replace(/^#{1,3} (.+)$/gm,'<strong style="font-size:0.9rem;display:block;margin:12px 0 4px;color:var(--accent2)">$1</strong>');
+  document.getElementById('histList').innerHTML=`
+    <div class="hist-detail">
+      <div class="hist-detail-header">
+        <div><strong>${h.nome}</strong><div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">${h.data} · ${h.semanas} sem</div></div>
+        <button class="btn-close" onclick="renderHistList()">←</button>
+      </div>
+      <div class="hist-detail-body">${fmt}</div>
+    </div>`;
+}
+
+async function enviarFeedback(inputId,successId){
+  const input=document.getElementById(inputId);
+  const raw=input.value.trim();
+  if(!raw)return;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:150,system:`Extraia uma regra objetiva de feedback de personal trainer. Responda APENAS com a regra em 1-2 frases diretas.`,messages:[{role:"user",content:raw}]})
+    });
+    const data=await res.json();
+    rules.push({id:Date.now(),text:data.content?.[0]?.text?.trim()||raw});
+  }catch{rules.push({id:Date.now(),text:raw});}
+  save(RULES_KEY,rules);updateRulesUI();
+  input.value='';
+  const s=document.getElementById(successId);
+  s.style.display='block';
+  setTimeout(()=>s.style.display='none',3500);
+}
+
+function updateRulesUI(){
+  document.getElementById('rulesCount').textContent=rules.length;
+  const el=document.getElementById('rulesList');
+  if(!rules.length){el.innerHTML='<div class="rules-empty">Nenhuma regra ainda.<br><br>Use o feedback após gerar um treino.</div>';return;}
+  el.innerHTML=rules.map(r=>`<div class="rule-item">${r.text}<button class="rule-delete" onclick="deleteRule(${r.id})">✕</button></div>`).join('');
+}
+function deleteRule(id){rules=rules.filter(r=>r.id!==id);save(RULES_KEY,rules);updateRulesUI();}
+updateRulesUI();
+
+function openPanel(name){
+  closePanel();
+  if(name==='hist')renderHistList();
+  document.getElementById('panel-'+name).classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function closePanel(){
+  document.querySelectorAll('.side-panel').forEach(p=>p.classList.remove('open'));
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function novoAluno(){
+  profile={};ctx={momento:null,semanas:null};planText='';
+  tagState={objetivo:null,dias:null,duracao:null,equip:[]};
+  document.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.option-card').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.week-opt').forEach(w=>w.classList.remove('active'));
+  document.getElementById('historico-field').style.display='none';
+  ['nome','idade','restricoes','historico'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('sexo').value='';
+  document.getElementById('nivel').value='';
+  currentStep=1;advanceStep(1);
+}
+</script>
+</body>
+</html>
